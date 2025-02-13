@@ -66,3 +66,67 @@ TEST(LCSQueryTest, PartialPrefixes) {
     EXPECT_GE(lcsQuery.Query(11, 13), 0);
     EXPECT_GE(lcsQuery.Query(7, 8), 0);
 }
+
+TEST(LCSQueryPerformanceTest, SingleQueryTime) {
+    std::string s = "abcdefghij";
+    std::string t = "abcdefghij";
+    LCSQuery lcsQuery(s, t);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    int res = lcsQuery.Query(10, 10);
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    EXPECT_LT(duration_ns, 1000) << "Single Query() call took too long: " << duration_ns << " ns";
+}
+
+TEST(LCSQueryPerformanceTest, MultipleQueryTime) {
+    std::string s = "abcdefghij";
+    std::string t = "abcdefghij";
+    LCSQuery lcsQuery(s, t);
+    const int iterations = 1000000;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    volatile int res = 0;
+    for (int i = 0; i < iterations; i++) {
+        res += lcsQuery.Query(10, 10);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto duration_ns = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    EXPECT_LT(duration_ns, iterations) << "Multiple Query() calls took too long: " << duration_ns << " ns for " << iterations << " iterations";
+}
+
+TEST(LCSQueryPerformanceTest, PrintSingleQueryTime) {
+    std::string s = "abcdefghij";
+    std::string t = "abcdefghij";
+    LCSQuery lcsQuery(s, t);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    int res = lcsQuery.Query(10, 10);
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "Single Query() call took " << duration_ns << " ns" << std::endl;
+    SUCCEED();
+}
+
+TEST(LCSQueryPerformanceTest, PrintMultipleQueryTime) {
+    std::string s = "abcdefghij";
+    std::string t = "abcdefghij";
+    LCSQuery lcsQuery(s, t);
+    const int iterations = 1000000;
+
+    auto start = std::chrono::high_resolution_clock::now();
+    volatile int res = 0;
+    for (int i = 0; i < iterations; i++) {
+        res += lcsQuery.Query(10, 10);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto duration_ns = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    std::cout << "Multiple Query() calls (" << iterations << " iterations) took "
+              << duration_ns << " ns, average "
+              << static_cast<double>(duration_ns) / iterations << " ns per call" << std::endl;
+    SUCCEED();
+}
