@@ -11,7 +11,7 @@ LCSQuery::LCSQuery(const std::string &source, const std::string &target) {
     m_prefixMatrices[0] = CreateIdentity(m_dim);
     for (int i = 1; i <= m_sourceLength; i++) {
         Matrix trans = CreateTransitionMatrix(source[i-1], target);
-        m_prefixMatrices[i] = DistanceMultiply(m_prefixMatrices[i-1], trans);
+        m_prefixMatrices[i] = DistanceMultiplyFast(m_prefixMatrices[i-1], trans);
     }
     m_Q.resize(m_sourceLength + 1, std::vector<long long>(m_dim, kInf));
     for (int j = 0; j < m_dim; j++) {

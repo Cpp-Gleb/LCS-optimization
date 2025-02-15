@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include "LCSQuery.h"
+#include "TransitionMatrix.h"
 #include <string>
 #include <chrono>
 
@@ -67,6 +68,29 @@ TEST(LCSQueryTest, PartialPrefixes) {
     EXPECT_GE(lcsQuery.Query(7, 8), 0);
 }
 
+TEST(LCSPreprocessingPerformanceTest, PrintPreprocessingTime) {
+    std::string s = "abcdefghij";
+    std::string t = "abcdefghij";
+    int m_dim = t.size() + 1;
+
+    Matrix I = CreateIdentity(m_dim);
+
+    auto start = std::chrono::high_resolution_clock::now();
+    Matrix current = I;
+    for (size_t i = 0; i < s.size(); i++) {
+        Matrix trans = CreateTransitionMatrix(s[i], t);
+        current = DistanceMultiplyFast(current, trans);
+    }
+    auto end = std::chrono::high_resolution_clock::now();
+
+    auto duration_ns = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    double avg_time = static_cast<double>(duration_ns) / s.size();
+    std::cout << std::endl << "Preprocessing for s of length " << s.size() << " took "
+              << duration_ns << " ns, average per symbol: "
+              << avg_time << " ns" << std::endl << std::endl;
+    SUCCEED();
+}
+
 TEST(LCSQueryPerformanceTest, SingleQueryTime) {
     std::string s = "abcdefghij";
     std::string t = "abcdefghij";
@@ -107,7 +131,7 @@ TEST(LCSQueryPerformanceTest, PrintSingleQueryTime) {
     auto end = std::chrono::high_resolution_clock::now();
 
     auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-    std::cout << "Single Query() call took " << duration_ns << " ns" << std::endl;
+    std::cout << "Single Query() call took " << duration_ns << " ns" << std::endl << std::endl;
     SUCCEED();
 }
 
@@ -127,6 +151,6 @@ TEST(LCSQueryPerformanceTest, PrintMultipleQueryTime) {
     auto duration_ns = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     std::cout << "Multiple Query() calls (" << iterations << " iterations) took "
               << duration_ns << " ns, average "
-              << static_cast<double>(duration_ns) / iterations << " ns per call" << std::endl;
+              << static_cast<double>(duration_ns) / iterations << " ns per call" << std::endl << std::endl;
     SUCCEED();
 }
